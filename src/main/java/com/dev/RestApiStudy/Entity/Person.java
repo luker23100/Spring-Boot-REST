@@ -5,7 +5,9 @@ import com.dev.RestApiStudy.Entity.Statuses.dataStatus;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 import java.time.LocalDate;
+import java.time.Period;
 
 @Entity
 public class Person {
@@ -14,6 +16,8 @@ public class Person {
     private String firstName;
     private String lastName;
     private LocalDate dateOfBirth;
+    @Transient
+    private int age;
     private dataStatus status;
 
     public Person() {}
@@ -21,14 +25,12 @@ public class Person {
     public Person(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
-        status = dataStatus.INFORMATION_IN_PROGRESS;
     }
 
     public Person(String firstName, String lastName, LocalDate dateOfBirth) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.dateOfBirth = dateOfBirth;
-        status = dataStatus.INFORMATION_COMPLETED;
     }
 
     public Long getId() {
@@ -69,5 +71,9 @@ public class Person {
 
     public void setStatus(dataStatus status) {
         this.status = status;
+    }
+
+    public int getAge() {
+        return (getDateOfBirth() != null) ? Period.between(getDateOfBirth(), LocalDate.now()).getYears() : -1;
     }
 }
