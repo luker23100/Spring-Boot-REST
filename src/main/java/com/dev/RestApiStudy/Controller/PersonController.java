@@ -2,6 +2,8 @@ package com.dev.RestApiStudy.Controller;
 
 import com.dev.RestApiStudy.Entity.Person;
 import com.dev.RestApiStudy.Service.PersonService;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,27 +17,27 @@ public class PersonController {
     }
 
     @GetMapping("/people")
-    List<Person> findAll() {
+    public CollectionModel<EntityModel<Person>> findAll() {
         return service.findAll();
     }
 
     @GetMapping("/people/{id}")
-    Person findById(@PathVariable Long id) {
+    public EntityModel<Person> findById(@PathVariable Long id) {
         return service.findById(id);
     }
 
     @PostMapping("/people")
-    Person addPerson(@RequestBody Person newPerson) {
+    public Person addPerson(@RequestBody Person newPerson) {
         return service.addPerson(newPerson);
     }
 
     @PutMapping("/people/{id}")
-    Person updatePerson(@RequestBody Person newPerson, @PathVariable Long id) {
+    public Person updatePerson(@RequestBody Person newPerson, @PathVariable Long id) {
         return service.updatePerson(newPerson, id);
     }
 
     @DeleteMapping("/people")
-    void deletePerson(@PathVariable Long id) {
+    public void deletePerson(@PathVariable Long id) {
         service.deletePerson(id);
     }
 }
