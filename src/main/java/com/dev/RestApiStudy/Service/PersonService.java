@@ -4,12 +4,14 @@ import com.dev.RestApiStudy.Controller.PersonController;
 import com.dev.RestApiStudy.Entity.Person;
 import com.dev.RestApiStudy.Entity.Statuses.dataStatus;
 import com.dev.RestApiStudy.Repository.PersonRepository;
+import com.dev.RestApiStudy.Service.EntityModelAssembler.EntityModelPersonAssembler;
 import com.dev.RestApiStudy.Service.Exceptions.PersonNotFoundException;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,17 +21,16 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Service
 public class PersonService {
     private final PersonRepository repository;
+    private final EntityModelPersonAssembler assembler;
 
-    public PersonService(PersonRepository repository) {
+    public PersonService(PersonRepository repository, EntityModelPersonAssembler assembler) {
         this.repository = repository;
+        this.assembler = assembler;
     }
 
     public CollectionModel<EntityModel<Person>> findAll() {
         List<EntityModel<Person>> people = repository.findAll().stream()
-                .map(person ->
-                    EntityModel.of(person,
-                            linkTo(methodOn(PersonController.class).findById(person.getId())).withSelfRel(),
-                            linkTo(methodOn(PersonController.class).findAll()).withRel("people")))
+                .map(assembler::toModel)
                 .collect(Collectors.toList());
 
         return CollectionModel.of(people,
@@ -40,17 +41,19 @@ public class PersonService {
         Person person = repository.findById(id)
                 .orElseThrow(() -> new PersonNotFoundException(id));
 
-        return EntityModel.of(person,
-                linkTo(methodOn(PersonController.class).findById(id)).withSelfRel(),
-                linkTo(methodOn(PersonController.class).findAll()).withRel("people"));
+        return assembler.toModel(person);
     }
 
-    public Person addPerson(Person newPerson) {
-        return repository.save(newPerson);
+    public ResponseEntity<?> addPerson(Person newPerson) {
+        EntityModel<Person> personModel = assembler.toModel(repository.save(newPerson));
+
+        return ResponseEntity
+                .created(personModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(personModel);
     }
 
-    public Person updatePerson(Person newPerson, Long id) {
-        return repository.findById(id)
+    public ResponseEntity<?> updatePerson(Person newPerson, Long id) {
+        Person updatedPerson = repository.findById(id)
                 .map(person -> {
                     person.setFirstName(newPerson.getFirstName());
                     person.setLastName(newPerson.getLastName());
@@ -62,9 +65,17 @@ public class PersonService {
                     return repository.save(person);
                 })
                 .orElse(repository.save(newPerson));
+
+        EntityModel<Person> personModel = assembler.toModel(updatedPerson);
+        return ResponseEntity
+                .created(personModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(personModel);
     }
 
-    public void deletePerson(Long id) {
+    public ResponseEntity<?> deletePerson(Long id) {
         repository.deleteById(id);
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 }

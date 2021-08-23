@@ -4,9 +4,9 @@ import com.dev.RestApiStudy.Entity.Person;
 import com.dev.RestApiStudy.Service.PersonService;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 public class PersonController {
@@ -27,17 +27,17 @@ public class PersonController {
     }
 
     @PostMapping("/people")
-    public Person addPerson(@RequestBody Person newPerson) {
+    public ResponseEntity<?> addPerson(@RequestBody Person newPerson) {
         return service.addPerson(newPerson);
     }
 
     @PutMapping("/people/{id}")
-    public Person updatePerson(@RequestBody Person newPerson, @PathVariable Long id) {
+    public ResponseEntity<?> updatePerson(@RequestBody Person newPerson, @PathVariable Long id) {
         return service.updatePerson(newPerson, id);
     }
 
     @DeleteMapping("/people")
-    public void deletePerson(@PathVariable Long id) {
-        service.deletePerson(id);
+    public ResponseEntity<?> deletePerson(@PathVariable Long id) {
+        return service.deletePerson(id);
     }
 }
